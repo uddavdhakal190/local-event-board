@@ -72,6 +72,7 @@ interface AdminUser {
   name: string;
   avatar: string | null;
   isAdmin: boolean;
+  isGrandAdmin?: boolean;
   createdAt: string;
   lastSignIn: string | null;
 }
@@ -486,7 +487,7 @@ function UserManagementPanel({ showToast }: {
   const [searchQuery, setSearchQuery] = useState('');
   const [confirmModal, setConfirmModal] = useState<{
     userId: string;
-    action: 'promote' | 'demote' | 'delete';
+    action: 'promote' | 'demote' | 'delete' | 'transfer';
     name: string;
     email: string;
   } | null>(null);
@@ -506,6 +507,7 @@ function UserManagementPanel({ showToast }: {
           name: row.name || row.email?.split('@')[0] || 'User',
           avatar: row.avatar || null,
           isAdmin: !!row.is_admin,
+          isGrandAdmin: !!row.is_grand_admin,
           createdAt: row.created_at,
           lastSignIn: row.last_sign_in,
         }));
@@ -582,6 +584,29 @@ function UserManagementPanel({ showToast }: {
 
         setUsers((prev) => prev.filter((u) => u.id !== userId));
         showToast(`User "${name}" deleted successfully`, 'success');
+      } else if (action === 'transfer') {
+        const { data, error } = await supabase.rpc('admin_transfer_grand_admin', {
+          target_user_id: userId,
+        });
+
+        if (error) {
+          showToast(error.message || 'Failed to transfer Grand Admin role', 'error');
+          setUpdatingUserId(null);
+          setConfirmModal(null);
+          return;
+        }
+
+        const result = Array.isArray(data) ? data[0] : null;
+        if (!result?.success) {
+          showToast(result?.message || 'Failed to transfer Grand Admin role', 'error');
+          setUpdatingUserId(null);
+          setConfirmModal(null);
+          return;
+        }
+
+        // Refetch users to get updated roles since multiple rows change
+        await fetchUsers();
+        showToast(`Grand Admin role transferred to "${name}"`, 'success');
       }
     } catch (err) {
       console.error(`Error ${action}ing user:`, err);
@@ -603,6 +628,8 @@ function UserManagementPanel({ showToast }: {
 
   const getInitials = (name: string) =>
     name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
+
+  const isViewerGrandAdmin = !!users.find(u => u.id === currentUser?.id)?.isGrandAdmin;
 
   return (
     <div>
@@ -718,11 +745,15 @@ function UserManagementPanel({ showToast }: {
                         {isSelf && (
                           <span className="text-[10px] font-bold text-[#9CAFA0] bg-[#9CAFA0]/10 px-2 py-0.5 rounded-full">You</span>
                         )}
-                        {u.isAdmin && (
+                        {u.isGrandAdmin ? (
+                          <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                            <Crown className="w-2.5 h-2.5" /> Grand Admin
+                          </span>
+                        ) : u.isAdmin ? (
                           <span className="text-[10px] font-bold text-[#FF9B51] bg-[#FF9B51]/10 px-2 py-0.5 rounded-full flex items-center gap-0.5">
                             <ShieldCheck className="w-2.5 h-2.5" /> Admin
                           </span>
-                        )}
+                        ) : null}
                       </div>
                       <p className="text-xs text-gray-500 truncate">{u.email}</p>
                       <div className="flex items-center gap-3 mt-1.5">
@@ -743,38 +774,51 @@ function UserManagementPanel({ showToast }: {
                         <span className="text-[11px] text-gray-400 italic bg-gray-50 px-3 py-1.5 rounded-lg">Current session</span>
                       ) : (
                         <>
-                          {u.isAdmin ? (
+                          {isViewerGrandAdmin && (
+                            u.isAdmin && !u.isGrandAdmin ? (
+                              <>
+                                <button
+                                  onClick={() => setConfirmModal({ userId: u.id, action: 'transfer', name: u.name, email: u.email })}
+                                  disabled={updatingUserId === u.id}
+                                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+                                >
+                                  <Crown className="w-3.5 h-3.5" /> Make Grand Admin
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (isLastAdmin) {
+                                      showToast('Cannot remove the last admin.', 'error');
+                                      return;
+                                    }
+                                    setConfirmModal({ userId: u.id, action: 'demote', name: u.name, email: u.email });
+                                  }}
+                                  disabled={updatingUserId === u.id}
+                                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+                                >
+                                  <UserMinus className="w-3.5 h-3.5" /> Remove Admin
+                                </button>
+                              </>
+                            ) : !u.isGrandAdmin && (
+                              <button
+                                onClick={() => setConfirmModal({ userId: u.id, action: 'promote', name: u.name, email: u.email })}
+                                disabled={updatingUserId === u.id}
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#9CAFA0] hover:text-[#7A8E80] bg-[#9CAFA0]/10 hover:bg-[#9CAFA0]/20 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+                              >
+                                <UserPlus className="w-3.5 h-3.5" /> Make Admin
+                              </button>
+                            )
+                          )}
+                          
+                          {(!u.isAdmin || isViewerGrandAdmin) && !u.isGrandAdmin && (
                             <button
-                              onClick={() => {
-                                if (isLastAdmin) {
-                                  showToast('Cannot remove the last admin. Promote someone else first.', 'error');
-                                  return;
-                                }
-                                setConfirmModal({ userId: u.id, action: 'demote', name: u.name, email: u.email });
-                              }}
+                              onClick={() => setConfirmModal({ userId: u.id, action: 'delete', name: u.name, email: u.email })}
                               disabled={updatingUserId === u.id}
-                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
-                              title={isLastAdmin ? 'Cannot remove the last admin' : 'Remove admin privileges'}
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-red-500 bg-gray-50 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+                              title="Delete user account permanently"
                             >
-                              <UserMinus className="w-3.5 h-3.5" /> Remove Admin
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => setConfirmModal({ userId: u.id, action: 'promote', name: u.name, email: u.email })}
-                              disabled={updatingUserId === u.id}
-                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#9CAFA0] hover:text-[#7A8E80] bg-[#9CAFA0]/10 hover:bg-[#9CAFA0]/20 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
-                            >
-                              <UserPlus className="w-3.5 h-3.5" /> Make Admin
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           )}
-                          <button
-                            onClick={() => setConfirmModal({ userId: u.id, action: 'delete', name: u.name, email: u.email })}
-                            disabled={updatingUserId === u.id}
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-red-500 bg-gray-50 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
-                            title="Delete user account permanently"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
                         </>
                       )}
                     </div>
@@ -791,12 +835,15 @@ function UserManagementPanel({ showToast }: {
         {confirmModal && (
           <ConfirmModal
             title={
+              confirmModal.action === 'transfer' ? 'Transfer Grand Admin Role' :
               confirmModal.action === 'promote' ? 'Grant Admin Access' :
               confirmModal.action === 'demote' ? 'Remove Admin Access' :
               'Delete User Account'
             }
             description={
-              confirmModal.action === 'promote' ? (
+              confirmModal.action === 'transfer' ? (
+                <>Are you sure you want to permanently transfer the Grand Admin role to <strong>{confirmModal.name}</strong>? You will lose this role.</>
+              ) : confirmModal.action === 'promote' ? (
                 <>Grant admin privileges to <strong>{confirmModal.name}</strong> ({confirmModal.email})? They will be able to manage events, users, and settings.</>
               ) : confirmModal.action === 'demote' ? (
                 <>Remove admin privileges from <strong>{confirmModal.name}</strong> ({confirmModal.email})? They will lose access to the admin panel.</>
@@ -805,15 +852,18 @@ function UserManagementPanel({ showToast }: {
               )
             }
             confirmLabel={
+              confirmModal.action === 'transfer' ? 'Transfer Role' :
               confirmModal.action === 'promote' ? 'Grant Admin' :
               confirmModal.action === 'demote' ? 'Remove Admin' :
               'Deactivate User'
             }
             confirmColor={
+              confirmModal.action === 'transfer' ? 'bg-amber-600 hover:bg-amber-700' :
               confirmModal.action === 'promote' ? 'bg-[#9CAFA0] hover:bg-[#8A9E8F]' :
               'bg-red-500 hover:bg-red-600'
             }
             icon={
+              confirmModal.action === 'transfer' ? Crown :
               confirmModal.action === 'promote' ? UserPlus :
               confirmModal.action === 'demote' ? UserMinus :
               Trash2
@@ -1274,8 +1324,7 @@ export function AdminPage() {
             </Link>
           </div>
         </div>
-        <Footer />
-      </div>
+</div>
     );
   }
 
@@ -1299,87 +1348,17 @@ export function AdminPage() {
           </div>
         </section>
         <div className="flex-1 bg-[#FCFCFC] flex items-center justify-center px-6 py-20">
-          <div className="bg-white rounded-3xl border border-gray-100/80 p-10 text-center max-w-lg" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)' }}>
+          <div className="bg-white rounded-3xl border border-gray-100/80 p-10 text-center max-w-sm" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)' }}>
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#9CAFA0] to-[#8FA297] flex items-center justify-center mx-auto mb-5 shadow-lg shadow-[#9CAFA0]/20">
-              <Crown className="w-8 h-8 text-white" />
+              <ShieldCheck className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Admin Privileges Required</h2>
-            <p className="text-sm text-gray-500 leading-relaxed mb-8">
-              You need admin access to manage the platform. Admin privileges allow you to:
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Access Denied</h2>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              You don't have admin access.
             </p>
-            
-            <div className="space-y-3 mb-8 text-left">
-              <div className="flex items-start gap-3">
-                <div className="w-7 h-7 rounded-lg bg-[#9CAFA0]/10 flex items-center justify-center shrink-0">
-                  <CheckCircle className="w-4 h-4 text-[#9CAFA0]" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Approve & Reject Events</p>
-                  <p className="text-xs text-gray-500">Review and moderate all submitted events</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-7 h-7 rounded-lg bg-[#9CAFA0]/10 flex items-center justify-center shrink-0">
-                  <Users className="w-4 h-4 text-[#9CAFA0]" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Manage Users</p>
-                  <p className="text-xs text-gray-500">Promote admins and manage user accounts</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-7 h-7 rounded-lg bg-[#9CAFA0]/10 flex items-center justify-center shrink-0">
-                  <MessageSquare className="w-4 h-4 text-[#9CAFA0]" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">View All Messages</p>
-                  <p className="text-xs text-gray-500">Monitor and respond to platform conversations</p>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={handleClaimAdmin}
-              disabled={claimingAdmin}
-              className="w-full bg-gradient-to-r from-[#FF9B51] to-[#E88A3E] hover:from-[#E88A3E] hover:to-[#D97B2E] text-white px-6 py-3.5 rounded-xl font-bold text-sm shadow-xl shadow-orange-500/20 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 group"
-            >
-              {claimingAdmin ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Claiming Admin...
-                </>
-              ) : (
-                <>
-                  <Crown className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  Claim Admin Access
-                </>
-              )}
-            </button>
-            
-            {claimMessage && (
-              <motion.p 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`text-sm mt-4 px-4 py-2.5 rounded-lg ${
-                  claimMessage.includes('error') || claimMessage.includes('Admin already')
-                    ? 'bg-red-50 text-red-600 border border-red-100'
-                    : 'bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium'
-                }`}
-              >
-                {claimMessage}
-              </motion.p>
-            )}
-            
-            <div className="mt-6 pt-6 border-t border-gray-100">
-              <p className="text-xs text-gray-400 leading-relaxed">
-                <strong className="text-gray-500">First user?</strong> You can claim admin automatically.<br />
-                <strong className="text-gray-500">Not the first?</strong> Ask an existing admin to promote you.
-              </p>
-            </div>
           </div>
         </div>
-        <Footer />
-      </div>
+</div>
     );
   }
 
@@ -1603,8 +1582,7 @@ export function AdminPage() {
         )}
       </AnimatePresence>
 
-      {/* Footer */}
-      <Footer />
+      
     </div>
   );
 }

@@ -38,11 +38,7 @@ import { EventDetailModal, type EventDetailData } from './event-detail-modal';
 import { supabase } from '../../utils/supabaseClient';
 import { AttendeeAvatars, fetchRsvpBatch, type RsvpData } from './rsvp-helpers';
 
-// Import images for fallback usage
-import imgFeatured from "../../assets/c212d3ee398fea2ccc51ef0a22fc96464924d411.png";
-import imgUpcoming1 from "../../assets/b94c129aca3f804170770d4fbfe0c32c36453de7.png";
-import imgUpcoming2 from "../../assets/08e55f9c2d182fcd2f13dc9e04de5a67e7991374.png";
-import imgUpcoming3 from "../../assets/d0f6a8fe0a6e0f7d90a6b21a1850f60b17053106.png";
+
 
 /* ──────────────────────────────────────────────────── */
 /*  Hero                                                */
@@ -276,9 +272,6 @@ function FeaturedEvent({ onViewDetails }: { onViewDetails: (event: EventDetailDa
   const [featuredRsvpMap, setFeaturedRsvpMap] = useState<Record<string, RsvpData>>({});
   const [showingByPopularity, setShowingByPopularity] = useState(true);
 
-  // Fallback images for featured events with no cover
-  const fallbackImages = [imgFeatured, imgFeatured, imgFeatured];
-
   useEffect(() => {
     const load = async () => {
       try {
@@ -332,7 +325,7 @@ function FeaturedEvent({ onViewDetails }: { onViewDetails: (event: EventDetailDa
             const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
             return {
               id: e.id,
-              image: e.cover_image || e.coverImage || fallbackImages[i] || imgFeatured,
+              image: e.cover_image || e.coverImage || '',
               title: e.title || 'Untitled Event',
               date: `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`,
               time: endTime ? `${startTime} – ${endTime}` : startTime,
@@ -745,7 +738,6 @@ function EventCard({ id, image, title, date, location, tag, price, isFree, index
 /* ─────────────────────────────────────────────────── */
 
 function UpcomingEvents({ onViewDetails }: { onViewDetails: (event: EventDetailData) => void }) {
-  const fallbackImages = [imgUpcoming1, imgUpcoming2, imgUpcoming3];
   const [events, setEvents] = useState<Array<{
     id: number; image: string; title: string; date: string;
     location: string; tag: string; price?: string; isFree?: boolean; attendees: number;
@@ -799,7 +791,7 @@ function UpcomingEvents({ onViewDetails }: { onViewDetails: (event: EventDetailD
             const timeRange = endTime ? `${startTime} - ${endTime}` : startTime;
             return {
               id: i + 1,
-              image: e.cover_image || e.coverImage || fallbackImages[i] || imgUpcoming1,
+              image: e.cover_image || e.coverImage || '',
               title: e.title || 'Untitled Event',
               date: `${days[d.getDay()]} ${d.getDate()}. ${months[d.getMonth()]} 2026 at ${timeRange}`,
               location,
@@ -1065,7 +1057,6 @@ export function HomePage() {
         <FeaturedEvent onViewDetails={setSelectedEvent} />
         <UpcomingEvents onViewDetails={setSelectedEvent} />
       </main>
-      <Footer />
       <EventDetailModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
     </>
   );

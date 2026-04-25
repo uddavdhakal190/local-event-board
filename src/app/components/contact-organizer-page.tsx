@@ -307,7 +307,7 @@ export function ContactOrganizerPage() {
             </motion.div>
           </div>
         </div>
-        <Footer />
+        
       </div>
     );
   }
@@ -637,7 +637,7 @@ export function ContactOrganizerPage() {
           </div>
         </div>
       </div>
-      <Footer />
+      
     </div>
   );
 }

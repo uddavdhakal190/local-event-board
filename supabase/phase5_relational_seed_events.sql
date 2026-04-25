@@ -49,7 +49,7 @@ begin
   )
   values
     (
-      'f03ce3d1-33eb-4e15-bdd7-6f920b7e7630',
+      gen_random_uuid(),
       'Kokkola Spring Street Food Fest',
       'A two-day outdoor food festival featuring Finnish street food, live acoustic sets, and family activities in the city center.',
       seed_author_id,
@@ -77,7 +77,7 @@ begin
       now() - interval '2 days'
     ),
     (
-      '963d2781-9768-43dd-b780-00193e4f34ee',
+      gen_random_uuid(),
       'Nordic Design Workshop Night',
       'Hands-on workshop exploring Nordic poster design, typography, and digital branding systems for creators and students.',
       seed_author_id,
@@ -105,7 +105,7 @@ begin
       now() - interval '1 day'
     ),
     (
-      'e58ca7d1-3ac6-4cef-a4ef-bfbd68f4f126',
+      gen_random_uuid(),
       'Sunset Wellness Walk & Breathwork',
       'Guided coastal walk with light mobility practice and breathwork to unwind after work. Suitable for beginners.',
       seed_author_id,
@@ -133,7 +133,7 @@ begin
       now() - interval '8 hours'
     ),
     (
-      '0e95153e-0a67-41cd-9022-646deb8d005e',
+      gen_random_uuid(),
       'Community Tech Meetup: Build and Ship',
       'An evening meetup for developers and builders sharing practical shipping lessons, demos, and networking.',
       seed_author_id,

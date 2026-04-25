@@ -26,3 +26,8 @@ coverage/
 
 # Build artifacts
 *.tsbuildinfo
+
+# Local helper scripts and scratch files
+fix_*.js
+rm_footer*.ps1
+tmp_*.txt

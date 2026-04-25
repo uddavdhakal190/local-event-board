@@ -898,10 +898,9 @@ export function BrowseEventsPage() {
       </div>
 
       {/* Footer */}
-      <Footer />
 
       {/* Event detail modal */}
       <EventDetailModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
     </div>
   );
-}
+}      

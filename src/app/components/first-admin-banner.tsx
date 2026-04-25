@@ -5,7 +5,7 @@ import { useAuth } from './auth-context';
 import { useNavigate } from 'react-router';
 
 export function FirstAdminBanner() {
-  const { isLoggedIn, isAdmin, noAdminExists, claimAdmin, checkAdminExists } = useAuth();
+  const { isLoggedIn, isAdmin, claimAdmin, checkAdminExists } = useAuth();
   const [showBanner, setShowBanner] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
   const navigate = useNavigate();

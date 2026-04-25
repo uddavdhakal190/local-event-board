@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Chrome, ArrowLeft, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router';
 import { useAuth } from './auth-context';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 
 export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -15,6 +15,8 @@ export function LoginPage() {
   const [suggestion, setSuggestion] = useState('');
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +45,7 @@ export function LoginPage() {
   const handleGoogleLogin = async () => {
     setError('');
     setIsGoogleLoading(true);
-    const result = await loginWithGoogle();
+    const result = await loginWithGoogle(redirect);
     if (result.error) {
       setError(result.error);
       setIsGoogleLoading(false);

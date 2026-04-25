@@ -6,7 +6,11 @@ import { Menu, X, Heart, MessageSquare, User, Calendar, LogOut, ChevronDown, Mai
 import { useAuth } from './auth-context';
 import { useFavorites } from './favorites-context';
 import { supabase } from './auth-context';
+import { projectId, publicAnonKey } from '/utils/supabase/info';
 import { Toaster, toast } from 'sonner';
+import { Footer } from './shared/footer';
+
+const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-ccc6c9e2`;
 
 const navItems = [
   { label: 'Home', path: '/' },
@@ -64,9 +68,18 @@ export function Layout() {
     }
     const fetchCount = async () => {
       try {
-        const { data, error } = await supabase.rpc('my_unread_conversation_count');
-        if (!error) {
-          const newCount = Number(data || 0);
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token;
+        if (!token) return;
+        const res = await fetch(`${API_BASE}/conversations`, {
+          headers: {
+            'Authorization': `Bearer ${publicAnonKey}`,
+            'X-User-Token': token,
+          },
+        });
+        const json = await res.json();
+        if (json.success) {
+          const newCount = json.unreadCount || 0;
           
           // Detect NEW messages (count increased)
           if (newCount > (prevUnreadCount ?? 0) && prevUnreadCount !== null) {
@@ -458,6 +471,8 @@ export function Layout() {
           <ArrowUp className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-y-[-2px] group-hover:text-white transition-all duration-200" />
         </button>
       )}
+
+      <Footer />
     </div>
   );
 }

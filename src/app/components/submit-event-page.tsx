@@ -42,6 +42,9 @@ import { LoginRequired } from './login-required';
 import { CalendarDatePicker } from './calendar-date-picker';
 import { TimePicker } from './time-picker';
 import { CityAutocomplete } from './city-autocomplete';
+import { projectId, publicAnonKey } from '/utils/supabase/info';
+
+const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-ccc6c9e2`;
 
 /* ──────────────────────────────────────────────────── */
 /*  Category config (same as browse page)               */
@@ -333,78 +336,51 @@ function SubmitEventForm() {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [draftSaveError, setDraftSaveError] = useState('');
 
-  const normalizeStatus = (status: string): 'pending' | 'approved' | 'rejected' => {
-    if (status === 'approved' || status === 'rejected' || status === 'pending') return status;
-    return 'pending';
-  };
-
-  const buildEventPayload = (opts: { isDraft: boolean }) => ({
-    title: title || 'Untitled Event',
-    description: description || '',
-    category: category || null,
-    cover_image: coverImage,
-    start_date: startDate || null,
-    end_date: endDate || null,
-    start_time: startTime || null,
-    end_time: endTime || null,
-    venue_name: venueName || null,
-    address: address || null,
-    city: city || null,
-    pricing_type: pricingType,
-    price: pricingType === 'paid' && price ? Number(price) : null,
-    capacity: capacity ? Number(capacity) : null,
-    tags,
-    highlights,
-    organizer_name: organizerName || null,
-    organizer_email: organizerEmail || null,
-    organizer_phone: organizerPhone || null,
-    website: website || null,
-    is_draft: opts.isDraft,
-    status: normalizeStatus('pending'),
-  });
-
   // Load draft on mount
   useEffect(() => {
     const loadDraft = async () => {
       try {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (!authUser?.id) return;
+        const { data: { session } } = await supabase.auth.getSession();
+        const accessToken = session?.access_token;
+        if (!accessToken) return;
 
-        const { data: draft, error } = await supabase
-          .from('events')
-          .select('*')
-          .eq('author_id', authUser.id)
-          .eq('is_draft', true)
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+        const response = await fetch(`${API_BASE}/events/draft`, {
+          headers: {
+            'Authorization': `Bearer ${publicAnonKey}`,
+            'X-User-Token': accessToken,
+          },
+        });
 
-        if (error || !draft) return;
-
-        // Populate form with draft data
-        setTitle(draft.title || '');
-        setDescription(draft.description || '');
-        setCategory(draft.category || '');
-        setStartDate(draft.start_date || draft.startDate || '');
-        setEndDate(draft.end_date || draft.endDate || '');
-        setStartTime(draft.start_time || draft.startTime || '');
-        setEndTime(draft.end_time || draft.endTime || '');
-        setVenueName(draft.venue_name || draft.venueName || '');
-        setAddress(draft.address || '');
-        setCity(draft.city || '');
-        setPricingType((draft.pricing_type || draft.pricingType || 'free') === 'paid' ? 'paid' : 'free');
-        setPrice(draft.price != null ? String(draft.price) : '');
-        setCapacity(draft.capacity != null ? String(draft.capacity) : '');
-        setCoverImage(draft.cover_image || draft.coverImage || null);
-        setTags(Array.isArray(draft.tags) ? draft.tags : []);
-        setHighlights(Array.isArray(draft.highlights) ? draft.highlights : []);
-        setOrganizerName(draft.organizer_name || draft.organizerName || '');
-        setOrganizerEmail(draft.organizer_email || draft.organizerEmail || '');
-        setOrganizerPhone(draft.organizer_phone || draft.organizerPhone || '');
-        setWebsite(draft.website || '');
-        setDraftSavedAt(draft.updated_at || draft.created_at || null);
-        setDraftLoaded(true);
-        console.log('✓ Draft loaded successfully');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.draft) {
+            const draft = data.draft;
+            // Populate form with draft data
+            setTitle(draft.title || '');
+            setDescription(draft.description || '');
+            setCategory(draft.category || '');
+            setStartDate(draft.startDate || '');
+            setEndDate(draft.endDate || '');
+            setStartTime(draft.startTime || '');
+            setEndTime(draft.endTime || '');
+            setVenueName(draft.venueName || '');
+            setAddress(draft.address || '');
+            setCity(draft.city || '');
+            setPricingType(draft.pricingType || 'free');
+            setPrice(draft.price || '');
+            setCapacity(draft.capacity || '');
+            setCoverImage(draft.coverImage || null);
+            setTags(draft.tags || []);
+            setHighlights(draft.highlights || []);
+            setOrganizerName(draft.organizerName || '');
+            setOrganizerEmail(draft.organizerEmail || '');
+            setOrganizerPhone(draft.organizerPhone || '');
+            setWebsite(draft.website || '');
+            setDraftSavedAt(draft.savedAt);
+            setDraftLoaded(true);
+            console.log('✓ Draft loaded successfully');
+          }
+        }
       } catch (error) {
         console.error('Error loading draft:', error);
       }
@@ -466,36 +442,58 @@ function SubmitEventForm() {
     setIsSavingDraft(true);
     setDraftSaveError('');
 
+    const draftData = {
+      title,
+      description,
+      category,
+      startDate,
+      endDate,
+      startTime,
+      endTime,
+      venueName,
+      address,
+      city,
+      pricingType,
+      price,
+      capacity,
+      coverImage,
+      tags,
+      highlights,
+      organizerName,
+      organizerEmail,
+      organizerPhone,
+      website,
+    };
+
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser?.id) {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+
+      if (!accessToken) {
         setDraftSaveError('Authentication error. Please log in again.');
         setIsSavingDraft(false);
         return;
       }
 
-      await supabase
-        .from('events')
-        .delete()
-        .eq('author_id', authUser.id)
-        .eq('is_draft', true);
+      const response = await fetch(`${API_BASE}/events/draft`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${publicAnonKey}`,
+          'X-User-Token': accessToken,
+        },
+        body: JSON.stringify(draftData),
+      });
 
-      const { data, error } = await supabase
-        .from('events')
-        .insert({
-          ...buildEventPayload({ isDraft: true }),
-          author_id: authUser.id,
-        })
-        .select('updated_at, created_at')
-        .single();
+      const data = await response.json();
 
-      if (error) {
-        setDraftSaveError(error.message || 'Failed to save draft');
+      if (!response.ok) {
+        setDraftSaveError(data?.error || 'Failed to save draft');
         setIsSavingDraft(false);
         return;
       }
 
-      setDraftSavedAt(data.updated_at || data.created_at || new Date().toISOString());
+      setDraftSavedAt(data.savedAt);
       setIsSavingDraft(false);
       console.log('✓ Draft saved successfully');
     } catch (error) {
@@ -539,36 +537,71 @@ function SubmitEventForm() {
     setIsSubmitting(true);
     setSubmitError('');
 
+    const eventData = {
+      title,
+      description,
+      category,
+      startDate,
+      endDate,
+      startTime,
+      endTime,
+      venueName,
+      address,
+      city,
+      pricingType,
+      price,
+      capacity,
+      coverImage,
+      tags,
+      highlights,
+      organizerName,
+      organizerEmail,
+      organizerPhone,
+      website,
+    };
+
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser?.id) {
+      // Refresh session to get a valid token
+      const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
+      
+      if (sessionError || !session) {
+        console.error('Session error:', sessionError);
         setSubmitError('Your session has expired. Please log in again.');
         setIsSubmitting(false);
         return;
       }
 
-      const { error } = await supabase
-        .from('events')
-        .insert({
-          ...buildEventPayload({ isDraft: false }),
-          author_id: authUser.id,
-          status: normalizeStatus('pending'),
-        });
+      const accessToken = session.access_token;
+      console.log('Using access token:', accessToken.substring(0, 20) + '...');
 
-      if (error) {
-        console.error('Server error submitting event:', error);
-        setSubmitError(error.message || 'Failed to submit event. Please try again.');
+      const response = await fetch(`${API_BASE}/events`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${publicAnonKey}`,
+          'X-User-Token': accessToken,
+        },
+        body: JSON.stringify(eventData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Server error submitting event:', data);
+        setSubmitError(data?.error || data?.message || `Server error (${response.status}). Please try again.`);
         setIsSubmitting(false);
         return;
       }
 
       // Delete draft after successful submission
       try {
-        await supabase
-          .from('events')
-          .delete()
-          .eq('author_id', authUser.id)
-          .eq('is_draft', true);
+        await fetch(`${API_BASE}/events/draft`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${publicAnonKey}`,
+            'X-User-Token': accessToken,
+          },
+        });
         console.log('✓ Draft deleted after successful submission');
       } catch (err) {
         console.log('Could not delete draft:', err);
@@ -1181,7 +1214,6 @@ function SubmitEventForm() {
       </AnimatePresence>
 
       {/* Footer */}
-      <Footer />
     </div>
   );
-}
+}      

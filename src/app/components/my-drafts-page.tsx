@@ -26,6 +26,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from './auth-context';
 import { supabase } from './auth-context';
 import { LoginRequired } from './login-required';
+import { projectId, publicAnonKey } from '/utils/supabase/info';
+
+const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-ccc6c9e2`;
 
 interface DraftData {
   title?: string;
@@ -212,7 +215,6 @@ export function MyDraftsPage() {
 function DraftsContent() {
   const navigate = useNavigate();
   const [draft, setDraft] = useState<DraftData | null>(null);
-  const [draftEventId, setDraftEventId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -225,50 +227,24 @@ function DraftsContent() {
   const loadDraft = async () => {
     try {
       setIsLoading(true);
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser?.id) {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) {
         setIsLoading(false);
         return;
       }
 
-      const { data: row, error } = await supabase
-        .from('events')
-        .select('*')
-        .eq('author_id', authUser.id)
-        .eq('is_draft', true)
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error || !row) {
-        setDraft(null);
-        setDraftEventId(null);
-        return;
-      }
-
-      setDraftEventId(row.id);
-      setDraft({
-        title: row.title || '',
-        description: row.description || '',
-        category: row.category || '',
-        startDate: row.start_date || row.startDate || '',
-        endDate: row.end_date || row.endDate || '',
-        startTime: row.start_time || row.startTime || '',
-        endTime: row.end_time || row.endTime || '',
-        venueName: row.venue_name || row.venueName || '',
-        address: row.address || '',
-        city: row.city || '',
-        pricingType: row.pricing_type || row.pricingType || 'free',
-        price: row.price != null ? String(row.price) : '',
-        capacity: row.capacity != null ? String(row.capacity) : '',
-        coverImage: row.cover_image || row.coverImage || null,
-        tags: Array.isArray(row.tags) ? row.tags : [],
-        organizerName: row.organizer_name || row.organizerName || '',
-        organizerEmail: row.organizer_email || row.organizerEmail || '',
-        organizerPhone: row.organizer_phone || row.organizerPhone || '',
-        website: row.website || '',
-        savedAt: row.updated_at || row.created_at || null,
+      const response = await fetch(`${API_BASE}/events/draft`, {
+        headers: {
+          'Authorization': `Bearer ${publicAnonKey}`,
+          'X-User-Token': accessToken,
+        },
       });
+
+      if (response.ok) {
+        const data = await response.json();
+        setDraft(data.draft || null);
+      }
     } catch (error) {
       console.error('Error loading draft:', error);
     } finally {
@@ -279,23 +255,20 @@ function DraftsContent() {
   const handleDeleteDraft = async () => {
     try {
       setIsDeleting(true);
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser?.id) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) return;
 
-      let query = supabase
-        .from('events')
-        .delete()
-        .eq('author_id', authUser.id)
-        .eq('is_draft', true);
+      const response = await fetch(`${API_BASE}/events/draft`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${publicAnonKey}`,
+          'X-User-Token': accessToken,
+        },
+      });
 
-      if (draftEventId) {
-        query = query.eq('id', draftEventId);
-      }
-
-      const { error } = await query;
-      if (!error) {
+      if (response.ok) {
         setDraft(null);
-        setDraftEventId(null);
         setShowDeleteConfirm(false);
         setDeleteSuccess(true);
         setTimeout(() => setDeleteSuccess(false), 3000);
@@ -627,8 +600,7 @@ function DraftsContent() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <Footer />
     </div>
   );
 }
+      

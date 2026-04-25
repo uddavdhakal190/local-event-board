@@ -34,7 +34,9 @@ import { Link } from 'react-router';
 const team = [
   {
     name: 'Nur Ahammad Niloy',
-    role: 'UI/UX Designer',
+      linkedinUrl: 'https://www.linkedin.com/in/nur-ahammad-niloy-472a52218/',
+      githubUrl: 'https://github.com/NurAhammadNiloy',
+      role: 'UI/UX Designer',
     desc: 'Crafts every pixel with purpose — from wireframes to polished interfaces that feel effortless and look stunning.',
     icon: Palette,
     accent: 'from-[#FF9B51] to-[#FFB070]',
@@ -43,7 +45,9 @@ const team = [
   },
   {
     name: 'Tahbir Moon',
-    role: 'Quality Assurance Tester',
+      linkedinUrl: '#',
+      githubUrl: '#',
+      role: 'Quality Assurance Tester',
     desc: 'Ensures every feature is bulletproof — rigorously testing edge cases so users never have to encounter a bug.',
     icon: TestTube,
     accent: 'from-[#9CAFA0] to-[#7A8E80]',
@@ -52,7 +56,9 @@ const team = [
   },
   {
     name: 'Md Rashedul Islam',
-    role: 'Backend Developer',
+      linkedinUrl: 'https://www.linkedin.com/in/md-rasedul-islam-b88153247?utm_source=share_via&utm_content=profile&utm_medium=member_android',
+      githubUrl: 'https://github.com/rashed-22',
+      role: 'Backend Developer',
     desc: 'Architects the APIs and server logic that power every interaction — fast, secure, and built to scale.',
     icon: Server,
     accent: 'from-indigo-500 to-blue-500',
@@ -61,7 +67,9 @@ const team = [
   },
   {
     name: 'Uddhav Dhakal',
-    role: 'Database Engineer',
+      linkedinUrl: 'https://www.linkedin.com/in/ud4uddav',
+      githubUrl: 'https://github.com/uddavdhakal190',
+      role: 'Database Engineer',
     desc: 'Designs and optimizes the data layer — making sure every query is lightning-fast and every record is safe.',
     icon: Database,
     accent: 'from-emerald-500 to-teal-500',
@@ -427,16 +435,25 @@ export function AboutPage() {
                     </div>
 
                     {/* Social links */}
-                    <div className="absolute bottom-3.5 right-3.5 flex gap-1.5 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-                      {[Linkedin, Github].map((SocialIcon, si) => (
+                    <div className="absolute z-10 bottom-3.5 right-3.5 flex gap-1.5 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
                         <a
-                          key={si}
-                          href="#"
-                          className="w-7 h-7 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-gray-600 hover:text-[#FF9B51] shadow-sm transition-colors duration-200"
+                          href={member.linkedinUrl || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={member.name + ' LinkedIn'}
+                          className="w-7 h-7 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-gray-600 hover:text-[#0077B5] shadow-sm transition-colors duration-200"
                         >
-                          <SocialIcon className="w-3 h-3" />
+                          <Linkedin className="w-3 h-3" />
                         </a>
-                      ))}
+                        <a
+                          href={member.githubUrl || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={member.name + ' GitHub'}
+                          className="w-7 h-7 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-gray-600 hover:text-gray-900 shadow-sm transition-colors duration-200"
+                        >
+                          <Github className="w-3 h-3" />
+                        </a>
                     </div>
                   </div>
 
@@ -504,7 +521,8 @@ export function AboutPage() {
       </section>
 
       {/* Footer */}
-      <Footer />
     </div>
   );
-}
+}      
+
+

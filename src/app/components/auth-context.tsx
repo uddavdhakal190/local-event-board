@@ -21,7 +21,7 @@ interface AuthContextValue {
   noAdminExists: boolean;
   login: (email: string, password: string) => Promise<{ error?: string }>;
   signup: (name: string, email: string, password: string) => Promise<{ error?: string }>;
-  loginWithGoogle: () => Promise<{ error?: string }>;
+  loginWithGoogle: (redirectPath?: string) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error?: string }>;
   verifyEmail: (email: string) => Promise<{ error?: string }>;
@@ -213,13 +213,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [checkAdminStatus, ensureProfile]);
 
   // Google OAuth
-  const loginWithGoogle = useCallback(async (): Promise<{ error?: string }> => {
+  const loginWithGoogle = useCallback(async (redirectPath?: string): Promise<{ error?: string }> => {
     try {
       // Do not forget to complete setup at https://supabase.com/docs/guides/auth/social-login/auth-google
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}${redirectPath || '/'}`,
         },
       });
       if (error) {

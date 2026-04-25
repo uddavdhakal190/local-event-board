@@ -212,7 +212,7 @@ export function LoginRequired({ title, subtitle, description, icon: HeroIcon = L
       </div>
 
       {/* Footer */}
-      <Footer />
     </div>
   );
 }
+      
