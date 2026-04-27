@@ -65,6 +65,37 @@ This repository contains the frontend application, the SQL migration files, smok
 - smoke test script for backend verification
 - GitHub Actions CI workflow for build and smoke-test execution
 
+## Special Project Highlights
+
+These are the main special parts built in EventGO:
+
+- Complete event discovery experience with a home page, browse page, event cards, event details, category filters, search, sorting, pagination, and responsive layouts.
+- Role-based user experience for visitors, registered users, organizers, admins, and the first grand admin.
+- Full authentication flow using Supabase Auth, including signup, login, forgot password, password update, Google OAuth support, and automatic profile creation.
+- Favorites system that lets signed-in users save and remove events from a personal favorites page.
+- RSVP system with live RSVP counts, attendee avatar previews, join/remove RSVP actions, and a personal RSVP history page.
+- Event submission workflow where users can create events, save drafts, submit events for review, and track submitted events.
+- Admin moderation dashboard for approving, rejecting, reverting, and deleting submitted events.
+- User management tools for admins, including listing users, granting/removing admin role, deactivating users, and transferring grand-admin responsibility.
+- Organizer contact and messaging system with message creation, replies, archive/delete state, admin visibility, and per-user message handling.
+- Supabase PostgreSQL database with relational tables, phased SQL migrations, seed data, helper RPC functions, and security hardening scripts.
+- Row Level Security and database-level permission checks so important operations are protected beyond the frontend UI.
+- First-admin claim flow that allows the first trusted account to initialize platform administration when no admin exists yet.
+- API smoke test script that checks public reads, RPC access, authentication, favorites, messaging, and backend security expectations.
+- GitHub Actions CI workflow that installs dependencies, audits packages, builds the app, and runs the smoke test.
+- Cleaned production-ready project structure with unused template UI files, scratch scripts, and unnecessary dependencies removed.
+- Documented team roles through `CONTRIBUTORS.md` and the README team section for academic submission clarity.
+
+## Role-Based Modules
+
+| Role | What they can do |
+| --- | --- |
+| Visitor | Browse public approved events, search/filter events, view event details, read public pages. |
+| Registered User | Save favorites, RSVP to events, submit events, manage drafts, contact organizers, view messages. |
+| Organizer | Submit and manage event-related communication through the contact/message flow. |
+| Admin | Moderate submitted events, manage users, view platform messages, and perform protected admin actions. |
+| Grand Admin | Transfer grand-admin responsibility and manage higher-level admin permissions. |
+
 ## Technology Stack
 
 ### Frontend
@@ -74,7 +105,6 @@ This repository contains the frontend application, the SQL migration files, smok
 - React Router
 - Tailwind CSS
 - Motion
-- Radix UI components
 - Lucide icons
 
 ### Backend
@@ -178,8 +208,8 @@ Before running the project, make sure you have:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/NurAhammadNiloy/EventGo.git
-cd EventGo
+git clone https://github.com/uddavdhakal190/local-event-board.git
+cd local-event-board
 ```
 
 ### 2. Install dependencies
