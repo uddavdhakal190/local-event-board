@@ -81,10 +81,6 @@ These are the main special parts built in EventGO:
 - Supabase PostgreSQL database with relational tables, phased SQL migrations, seed data, helper RPC functions, and security hardening scripts.
 - Row Level Security and database-level permission checks so important operations are protected beyond the frontend UI.
 - First-admin claim flow that allows the first trusted account to initialize platform administration when no admin exists yet.
-- API smoke test script that checks public reads, RPC access, authentication, favorites, messaging, and backend security expectations.
-- GitHub Actions CI workflow that installs dependencies, audits packages, builds the app, and runs the smoke test.
-- Cleaned production-ready project structure with unused template UI files, scratch scripts, and unnecessary dependencies removed.
-- Documented team roles through `CONTRIBUTORS.md` and the README team section for academic submission clarity.
 
 ## Role-Based Modules
 
