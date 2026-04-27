@@ -105,7 +105,6 @@ function Hero() {
 
       <div className="relative pt-36 pb-32 md:pt-48 md:pb-44 px-6 flex flex-col items-center">
         <div className="max-w-4xl text-center space-y-6">
-          
 
           <motion.h1
             initial={{ opacity: 0, y: 20 }}

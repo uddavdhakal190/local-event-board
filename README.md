@@ -335,6 +335,17 @@ This directory is preserved only as reference and should not be used for new dev
 
 EventGO was developed as a bachelor capstone project by a four-member team with responsibilities spanning UI/UX design, quality assurance, backend development, and database engineering. The project reflects both technical implementation and academic work, including planning, research, testing, debugging, documentation, and presentation preparation.
 
+### Team Members
+
+| Member | Role |
+| --- | --- |
+| Nur Ahammad Niloy | UI/UX Designer |
+| Tahbir Moon | Quality Assurance Tester |
+| Md Rashedul Islam | Backend Developer |
+| Uddhav Dhakal | Database Engineer |
+
+Detailed contribution notes are available in `CONTRIBUTORS.md`.
+
 ## License and Attribution
 
 Please review:

@@ -22,10 +22,10 @@ export function Footer() {
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8">
             <div className="md:col-span-5 space-y-6">
-              <div className="flex items-center gap-1">
-                <span className="text-2xl font-bold tracking-tight text-white">Event</span>
-                <span className="text-2xl font-bold tracking-tight text-[#FFB070]">Go</span>
-              </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-2xl font-bold tracking-tight text-white">Event</span>
+                  <span className="text-2xl font-bold tracking-tight text-[#FFB070]">Go</span>
+                </div>
               <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
                 Discover and share amazing events across the world. From cultural festivals to outdoor adventures, find your next experience.
               </p>
