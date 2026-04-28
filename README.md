@@ -204,8 +204,8 @@ Before running the project, make sure you have:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/uddavdhakal190/local-event-board.git
-cd local-event-board
+git clone https://github.com/uddavdhakal190/EventGo.git
+cd EventGo
 ```
 
 ### 2. Install dependencies
