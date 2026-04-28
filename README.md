@@ -1,4 +1,4 @@
-# EventGO
+# EventGo
 
 EventGO is a full-stack event discovery and event management platform built as a bachelor capstone project. The application allows users to explore public events, create accounts, save favorites, RSVP to events, submit new events for review, and communicate with organizers. It also includes an admin workflow for moderation, user management, and message handling.
 
@@ -6,7 +6,7 @@ The project combines a modern React frontend with a Supabase backend powered by 
 
 ## Project Overview
 
-EventGO was designed to simulate a real event ecosystem where multiple roles interact with the same platform:
+EventGo was designed to simulate a real event ecosystem where multiple roles interact with the same platform:
 
 - visitors can browse approved events without signing in
 - registered users can manage favorites, RSVPs, messages, and their own submissions
@@ -359,7 +359,7 @@ This directory is preserved only as reference and should not be used for new dev
 
 ## Team and Academic Context
 
-EventGO was developed as a bachelor capstone project by a four-member team with responsibilities spanning UI/UX design, quality assurance, backend development, and database engineering. The project reflects both technical implementation and academic work, including planning, research, testing, debugging, documentation, and presentation preparation.
+EventGo was developed as a bachelor capstone project by a four-member team with responsibilities spanning UI/UX design, quality assurance, backend development, and database engineering. The project reflects both technical implementation and academic work, including planning, research, testing, debugging, documentation, and presentation preparation.
 
 ### Team Members
 
