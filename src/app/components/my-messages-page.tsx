@@ -129,14 +129,14 @@ function Footer() {
             <div className="md:col-span-4">
               <h4 className="text-[#FF9B51] font-bold text-xs uppercase tracking-widest mb-6">Contact Us</h4>
               <ul className="space-y-4">
-                {[{ icon: Mail, text: 'contact@localeventboard.com' }, { icon: Phone, text: '+358 78 465 4387' }, { icon: MapPin, text: 'Kokkola, Finland' }].map(({ icon: Icon, text }) => (
+                {[{ icon: Mail, text: 'contact@eventgo.com' }, { icon: Phone, text: '+358 78 465 4387' }, { icon: MapPin, text: 'Kokkola, Finland' }].map(({ icon: Icon, text }) => (
                   <li key={text} className="flex items-center gap-3 text-gray-400 text-sm"><div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0"><Icon className="w-4 h-4 text-gray-500" /></div><span>{text}</span></li>
                 ))}
               </ul>
             </div>
           </div>
           <div className="mt-16 pt-8 border-t border-white/[0.06] flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-gray-500 text-xs">&copy;2026 Local Event Board. All rights reserved.</p>
+            <p className="text-gray-500 text-xs">&copy;2026 EventGo. All rights reserved.</p>
             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /><span className="text-gray-500 text-xs">All systems operational</span></div>
           </div>
         </div>
